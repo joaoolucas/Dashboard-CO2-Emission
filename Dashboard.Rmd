@@ -1,0 +1,231 @@
+---
+title: "Dashboard emissão de carbono"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: row
+    vertical_layout: fill
+    theme: cerulean
+    runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(plotly)
+library(dplyr)
+library(readr)
+library(stringr)
+library(tidyverse)
+library(rgdal)
+library(leaflet)
+library(shiny)
+
+# Dados do mapa
+
+countries <- rgdal::readOGR("dados/countries.geojson")
+dados <- read_csv('dados/CO2Emission_LifeExp.csv') %>% rename(ISO_A3=Code) %>% 
+  mutate(CO2Emissions=CO2Emissions/1000000) %>% na.omit()
+
+dados1 <- read_csv('dados/gdp-per-capita-worldbank.csv') %>% rename(country=`Entity`) %>% rename(year=`Year`) %>% 
+  rename(income=`GDP per capita, PPP (constant 2011 international $)`) %>% rename('ISO_A3'='Code')
+
+income <- dados1 %>% filter(year=='2016') %>% select(-year,-country)
+
+dados2 <- inner_join(dados,income,by='ISO_A3')
+
+MapData <- merge(countries,dados2,by='ISO_A3')
+
+pal <- colorBin("viridis",domain = MapData$CO2Emissions,n=5)
+
+labels <- sprintf(
+  "<strong>%s</strong><br/>Emissão de carbono: %g milhões de toneladas <sup></sup><br/>Expectativa de vida: %g anos<sup></sup> <sup></sup><br/>Renda: %g doláres<sup></sup>",
+  countries$ADMIN, MapData$CO2Emissions, MapData$LifeExpectancy, MapData$income
+) %>% lapply(htmltools::HTML)
+
+# Dados dos grafico de pizza
+
+dados3 <- read_csv('dados/owid-co2-data.csv') %>% top_n(year,n=100) %>% 
+  select(-year,-iso_code,-consumption_co2,-trade_co2,-trade_co2_share,-consumption_co2_per_capita,-consumption_co2_per_gdp,-co2_per_gdp,-co2_per_unit_energy,-other_industry_co2,
+         -other_co2_per_capita,-population,-total_ghg,-gdp,-ghg_per_capita,-methane,-methane_per_capita,-nitrous_oxide,-nitrous_oxide_per_capita,
+         -primary_energy_consumption,-energy_per_capita,-energy_per_gdp,-co2_growth_prct,-co2_growth_abs) %>%  replace(is.na(.), 0) %>% mutate(id = row_number())  %>% 
+  select(id,cement_co2,oil_co2,coal_co2,flaring_co2,gas_co2)
+
+dadossoma <- colSums(dados3[,-1])
+
+dadossoma <- as.data.frame(dadossoma)
+
+dadossoma <- as.data.frame(t(dadossoma))
+
+novo <- data.frame(type = c('cement','oil','coal','flaring','gas'),
+                    co2 = c(dadossoma$cement_co2,dadossoma$oil_co2,dadossoma$coal_co2,dadossoma$flaring_co2,dadossoma$gas_co2))
+
+# Dados dos grafico de linha
+
+dados4 <- read_csv('dados/Life Expectancy Data.csv')  %>% rename(country=Country) %>%
+  mutate(country = str_replace(country, "United States of America", "United States")) %>% 
+  mutate(country = str_replace(country, "United Kingdom of Great Britain and Northern Ireland", "United Kingdom")) %>% 
+  mutate(country = gsub("Bolivia (Plurinational State of)", "Bolivia", country, fixed=TRUE)) %>% 
+  mutate(country = str_replace(country, "Brunei Darussalam", "Brunei")) %>% 
+  mutate(country = str_replace(country, "Democratic Republic of the Congo", "Democratic Republic of Congo")) %>% 
+  mutate(country = str_replace(country, "Democratic People's Republic of Korea", "North Korea"))  %>% 
+  mutate(country = str_replace(country, "Russian Federation", "Russia")) %>% 
+  mutate(country = gsub("Venezuela (Bolivarian Republic of)", "Venezuela",country, fixed=TRUE)) %>% 
+  rename(year=Year) %>% rename(life_expectancy=`Life expectancy`) %>% 
+  rename(income=`Income composition of resources`) %>% select(country,year,life_expectancy)
+
+co2 <- read_csv('dados/owid-co2-data.csv') %>% select(iso_code,country,year,co2) %>% 
+  top_n(year,n=4500) %>% top_n(year,n=-3500) 
+
+isocodes <- read_csv('dados/wikipedia-iso-country-codes.csv') %>% 
+  rename(country=`English short name lower case`) %>% 
+  mutate(country = str_replace(country, "United States Of America", "United States")) %>% 
+  rename(iso_code=`Alpha-3 code`) %>% 
+  select(country,iso_code)
+
+expecdevida <- inner_join(dados4,isocodes,by='country')
+
+dados5 <- read_csv('dados/gdp-per-capita-worldbank.csv') %>% rename(country=`Entity`) %>% rename(year=`Year`) %>% 
+  rename(income=`GDP per capita, PPP (constant 2011 international $)`) %>% rename(iso_code=Code)
+
+dados6 <- inner_join(expecdevida,dados5,by=c('iso_code','country','year'))
+
+dados7 <- inner_join(dados6,co2,by=c('country','year','iso_code')) %>% select(-iso_code)
+
+dados8 <- read_csv('dados/owid-co2-data.csv') %>% select(country,year,co2) 
+
+dados9 <- read_csv('dados/Life Expectancy Data.csv')  %>% rename(country=Country) %>%
+  rename(year=Year) %>% rename(life_expectancy=`Life expectancy`) %>% 
+  rename(income=`Income composition of resources`) %>% select(country,year,life_expectancy)
+
+dadosmundos <- dados9 %>% select(-country) %>% group_by(year) %>% replace(is.na(.), 0) %>%  summarise(life_expectancy = sum(life_expectancy)) %>% 
+  mutate(life_expectancy=life_expectancy/183)
+
+dadoseua <- dados9 %>% filter(country =='United States of America') %>% rename(life_expectancy_eua=life_expectancy) %>% select(-country)
+
+dadoschina <- dados9 %>% filter(country =='China')  %>% rename(life_expectancy_china=life_expectancy) %>% select(-country)
+
+dadosbrasil <- dados9 %>% filter(country =='Brazil')  %>% rename(life_expectancy_brasil=life_expectancy) %>% select(-country)
+
+
+dadosf <- inner_join(dadosmundos,dadoseua,by='year')
+dadosff <- inner_join(dadosf,dadoschina,by='year')
+dadosfff <- inner_join(dadosff,dadosbrasil,by='year')
+
+dados10 <- read_csv('dados/gdp-per-capita-worldbank.csv') %>% rename(country=`Entity`) %>% rename(year=`Year`) %>% 
+  rename(income=`GDP per capita, PPP (constant 2011 international $)`) %>% select(-Code)
+
+dadosmundoss <- dados10 %>% filter(country == 'World') %>% select(-country) 
+
+dadoseuas <- dados10 %>% filter(country =='United States') %>% rename(income_eua=income) %>% select(-country)
+
+dadoschinas <- dados10 %>% filter(country =='China')  %>% rename(income_china=income) %>% select(-country)
+
+dadosbrasils <- dados10 %>% filter(country =='Brazil')  %>% rename(income_brasil=income) %>% select(-country)
+
+
+dadosz <- inner_join(dadosmundoss,dadoseuas,by='year')
+dadoszz <- inner_join(dadosz,dadoschinas,by='year')
+dadoszzz <- inner_join(dadoszz,dadosbrasils,by='year')
+
+
+```
+
+Mapa
+==================================
+---
+
+### Mapa da emissão de carbono no ano de 2016
+
+```{r}
+leaflet(MapData, options=list(
+  worldCopyJump = FALSE,
+  maxBounds = list(
+    list(-90, -180),
+    list(90, 180)
+  )
+)) %>% addTiles() %>%  setView(0, 0, zoom = 2.2) %>% 
+ addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+    opacity = 1.0, fillOpacity = 0.5,
+    fillColor = ~pal(CO2Emissions),
+    highlightOptions = highlightOptions(color = "white", weight = 2,
+      bringToFront = TRUE),
+              label = labels,
+              labelOptions = labelOptions(
+                style = list("font-weight" = "normal", padding = "3px 8px"),
+                textsize = "15px",
+                direction = "auto")) %>%  leaflet::addLegend("bottomright",
+                                                             pal = pal, values = ~CO2Emissions,
+                                                             opacity = 0.7, title = "Emissão de carbono em milhões de toneladas")
+```
+
+Gráficos 
+==================================
+
+Inputs {.sidebar}
+----------------------------------
+```{r} 
+      selectInput("country", label = "País:",
+            choices=unique(dados7$country))
+```
+
+Row 
+-----------------------------------------------------------------------
+
+
+### Renda per capita por país
+
+```{r}
+renderPlotly({
+g=filter(dados7, country == input$country) %>%
+    ggplot(., aes(x=year, y=income))+geom_line(color = "blue4")+
+      theme_bw()+labs(y= "Renda per capita em doláres")
+    ggplotly(g)
+})
+```
+
+### Expectativa de vida por país
+
+```{r}
+renderPlotly({
+g=filter(dados7, country == input$country) %>%
+    ggplot(., aes(x=year, y=life_expectancy))+geom_line(color = "darkred")+
+      theme_bw()+labs(y= "Expectativa de vida")
+    ggplotly(g)
+})
+```
+
+### Emissão de carbono em milhões de toneladas por país
+
+```{r}
+renderPlotly({
+g=filter(dados8, country == input$country) %>%
+    ggplot(., aes(x=year, y=co2))+geom_line(color = "darkgreen")+
+      theme_bw()+labs(y= "Emissão de carbono")
+    ggplotly(g)
+})
+```
+
+
+Row 
+---
+
+### Emissão de carbono por tipo no mundo
+
+```{r}
+plot_ly(novo, labels = ~type, values = ~co2, type ='pie') 
+```
+
+### Renda no mundo
+
+```{r}
+plot_ly(dadoszzz, x = ~year, y = ~income, name = "Média mundial", type = 'scatter', mode = 'lines') %>% 
+   add_trace(y = ~income_eua, name = "Estados Unidos") %>% add_trace(y = ~income_china, name = "China") %>% add_trace(y = ~income_brasil, name = "Brasil")
+```
+
+### Expectativa de vida no mundo
+
+```{r}
+
+plot_ly(dadosfff, x = ~year, y = ~life_expectancy, name = "Média mundial", type = 'scatter', mode = 'lines') %>% 
+   add_trace(y = ~life_expectancy_eua, name = "Estados Unidos") %>% add_trace(y = ~life_expectancy_china, name = "China") %>% add_trace(y = ~life_expectancy_brasil, name = "Brasil")
+  
+```
