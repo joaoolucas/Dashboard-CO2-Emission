@@ -15,6 +15,7 @@ As seguintes ferramentas foram usadas na construção da dashboard:
 - [Tidyverse](https://www.tidyverse.org/) 
 - [Xaringan](https://github.com/yihui/xaringan) 
 - [Remotes](https://github.com/r-lib/remotes) 
+- [R Markdown](https://rmarkdown.rstudio.com/) 
 
 ### Instalação 
 
@@ -23,6 +24,8 @@ Para reproduzir a dashboard na sua máquina basta fazer um git clone dos arquivo
 ### Reprodução 
 
 A dashboard está hospedada no shinyapps.io, domínio gratuito pra aplicações R Shiny e pode ser acessada atráves desse [link](https://jliberato1.shinyapps.io/DashboardVED). 
+
+Também foi feito um rápido relatóro com algumas análises feitas a partir da dashboard, foi hospedado no rpubs.com, domínio gratuito pra publicações feitas com R Markdown. O relatório pode ser acessado através desse [link](https://rpubs.com/jliberato/co2VED). 
 
 ## 💾 Bases de dados 
 
