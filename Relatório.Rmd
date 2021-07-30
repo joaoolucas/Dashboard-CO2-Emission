@@ -1,0 +1,39 @@
+---
+title: "A relação entre a emissão de carbono, expectativa de vida e renda no mundo"
+subtitle: "Relatório do trabalho de Visualização e Exploração de dados"
+author: "João Lucas Liberato Alves"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+remotes::install_github("yihui/xaringan")
+```
+
+
+# A expectativa de vida e a renda per capita de países desenvolvidos geralmente aumenta com a diminuição de carbono
+
+Percebemos pelas informações apresentadas na dashboard que a expectativa de vida aumenta conforme a emissão de carbono diminui ou aumenta muito pouco ao longo dos anos.
+
+Por exemplo, a emissão de carbono nos Estados Unidos no ano de 2000 foi cerca de 6 bilhões de toneladas, com uma expectativa de vida de 76,8 anos e com o PIB per capita de 36.450 dólares. Já em 2015, houve uma diminuição de 9,76% na emissão de carbono em relação ao ano 2000, um aumento na expectativa de vida de 2,5 anos e um aumento de 35% no PIB per capita. A maioria dos países da Europa seguiu esse padrão.
+
+---
+
+# Nos países em desenvolvimento e subdesenvolvidos o padrão é diferente
+
+Os países em desenvolvimento e subdesenvolvidos também aumentaram a expectativa de vida e a renda ao longo dos anos, porém também aumentaram a emissão de carbono.
+
+Por exemplo, a emissão de carbono no México no ano de 2000 foi cerca de 396 milhões de toneladas, a expectativa de vida era de 74,8 anos e o PIB per capita era de 6720 dólares. Em 2015, a emissão de carbono aumentou 17,86% em relação ao ano de 2000, a expectativa de vida aumentou 1.9 anos e o PIB per capita aumentou 26,58%. Observamos que a emissão de carbono aumentou bastante mas a expectativa de vida e a renda não aumentaram tanto como nos países desenvolvidos. A maioria dos países da América Latina e África seguiram esse mesmo padrão.
+
+---
+
+# A emissão de carbono em dois extremos 
+
+Por um lado temos os países desenvolvidos que conseguem utilizar tecnologias para gerar energia com uma menor emissão de carbono. Dessa forma, conseguiram diminuir sua emissão de carbono e aumentar sua expectativa de vida.
+
+Já os países em deenvolvimento e subdesenvolvidos, precisam importar combustíveis fosséis baratos que liberam mais carbono. Esses países aumentaram sua emissão de carbono e não conseguiram acompanhar o aumento da expectativa de vida e renda dos países desenvolvidos. A comparação mostra que, embora seja possível atingir simuntanealmente reduções na emissões de carbono e alta expectativa de vida, isso só se aplica quando a renda da população é moderadamente alta. 
