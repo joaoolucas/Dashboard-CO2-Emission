@@ -13,6 +13,8 @@ As seguintes ferramentas foram usadas na construção da dashboard:
 - [Leaflet](https://rstudio.github.io/leaflet/) 
 - [Flexdashboard](https://pkgs.rstudio.com/flexdashboard/) 
 - [Tidyverse](https://www.tidyverse.org/) 
+- [Xaringan](https://github.com/yihui/xaringan) 
+- [Remotes](https://github.com/r-lib/remotes) 
 
 ### Instalação 
 
