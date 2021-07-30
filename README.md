@@ -2,7 +2,7 @@
 
 ## 📕 Sobre 
 
-Essa dashboard é um trabalho da disciplina de Visualização e Exploração de Dados do ICMC-USP e tem como objetivo mostrar a relação entre emisssão de carbono, expectativa de vida e renda. Tal relação já foi mostrada em um artigo do [Science Daily](https://www.sciencedaily.com/releases/2012/01/120126100641.htm). 
+Essa dashboard é um trabalho da disciplina de Visualização e Exploração de Dados do ICMC-USP, ministrada pela professora Cibele Russo, e tem como objetivo mostrar a relação entre emisssão de carbono, expectativa de vida e renda. Tal relação já foi mostrada em um artigo do [Science Daily](https://www.sciencedaily.com/releases/2012/01/120126100641.htm). 
 
 ## 🛠 Tecnologias 
 
